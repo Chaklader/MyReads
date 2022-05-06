@@ -1,6 +1,9 @@
 import React, {Component} from 'react';
 import * as BooksAPI from './BooksAPI';
 import ListBooks from "./ListBooks";
+import {Route} from "react-router-dom";
+import SearchBooks from "./SearchBooks";
+import {debounce} from "throttle-debounce";
 
 const bookSelves = [
     {key: "currentlyReading", name: "Currently Reading"},
@@ -49,6 +52,33 @@ class App extends Component {
         }
     }
 
+    searchForBooks = query => {
+        if (query.length > 0) {
+
+            BooksAPI.search(query)
+                .then(books => {
+                    if (books.error) {
+                        this.setState({
+                            searchBooks: []
+                        })
+                    }
+                    else {
+                        this.setState({
+                            searchBooks: books
+                        })
+                    }
+                })
+        }
+
+        else {
+            this.setState({
+                searchBooks: []
+            })
+        }
+    }
+    resetSearch = () => {
+        this.setState({ searchBooks: [] });
+    };
 
     render() {
 
@@ -61,11 +91,30 @@ class App extends Component {
         return (
             <div className="app">
 
-                <ListBooks
-                    bookselves={bookSelves}
-                    books={myBooks}
-                    onMove={this.moveBook}
+                <Route
+                    exact path="/"
+                    render={() => (
+                        <ListBooks
+                            bookselves={bookSelves}
+                            books={myBooks}
+                            onMove={this.moveBook}
+                        />
+                    )}
                 />
+
+                <Route
+                    path="/search"
+                    render={() => (
+                        <SearchBooks
+                            searchBooks={searchBooks}
+                            myBooks={myBooks}
+                            onSearch={this.searchForBooks}
+                            onMove={this.moveBook}
+                            onResetSearch={this.resetSearch}
+                        />
+                    )}
+                />
+
             </div>
         );
     }
